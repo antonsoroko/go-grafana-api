@@ -3,14 +3,17 @@ package gapi
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 )
 
 type Org struct {
 	Id   int64
 	Name string
+}
+
+type OrgResponse struct {
+	Id      int64  `json:"orgId"`
+	Message string `json:"message"`
 }
 
 func (c *Client) Orgs() ([]Org, error) {
@@ -20,14 +23,7 @@ func (c *Client) Orgs() ([]Org, error) {
 	if err != nil {
 		return orgs, err
 	}
-	resp, err := c.Do(req)
-	if err != nil {
-		return orgs, err
-	}
-	if resp.StatusCode != 200 {
-		return orgs, errors.New(resp.Status)
-	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := c.DoRead(req)
 	if err != nil {
 		return orgs, err
 	}
@@ -35,36 +31,68 @@ func (c *Client) Orgs() ([]Org, error) {
 	return orgs, err
 }
 
-func (c *Client) NewOrg(name string) error {
+func (c *Client) NewOrg(name string) (OrgResponse, error) {
 	settings := map[string]string{
 		"name": name,
 	}
-	data, err := json.Marshal(settings)
-	req, err := c.newRequest("POST", "/api/orgs", bytes.NewBuffer(data))
+	result := OrgResponse{}
+	postData, err := json.Marshal(settings)
+	req, err := c.newRequest("POST", "/api/orgs/", bytes.NewBuffer(postData))
 	if err != nil {
-		return err
+		return result, err
 	}
-	resp, err := c.Do(req)
+	data, err := c.DoRead(req)
 	if err != nil {
-		return err
+		return result, err
 	}
-	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
-	}
-	return err
+	err = json.Unmarshal(data, &result)
+	return result, err
 }
 
-func (c *Client) DeleteOrg(id int64) error {
+func (c *Client) UpdateOrg(Id int64, name string) (OrgResponse, error) {
+	settings := map[string]string{
+		"name": name,
+	}
+	result := OrgResponse{}
+	postData, err := json.Marshal(settings)
+	path := fmt.Sprintf("/api/orgs/%d", Id)
+	req, err := c.newRequest("PUT", path, bytes.NewBuffer(postData))
+	if err != nil {
+		return result, err
+	}
+	data, err := c.DoRead(req)
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
+func (c *Client) GetOrgByName(name string) (Org, error) {
+	result := Org{}
+	path := fmt.Sprintf("/api/orgs/name/%s", name)
+	req, err := c.newRequest("GET", path, nil)
+	if err != nil {
+		return result, err
+	}
+	data, err := c.DoRead(req)
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
+func (c *Client) DeleteOrg(id int64) (OrgResponse, error) {
+	result := OrgResponse{}
 	req, err := c.newRequest("DELETE", fmt.Sprintf("/api/orgs/%d", id), nil)
 	if err != nil {
-		return err
+		return result, err
 	}
-	resp, err := c.Do(req)
+	data, err := c.DoRead(req)
 	if err != nil {
-		return err
+		return result, err
 	}
-	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
-	}
-	return err
+	err = json.Unmarshal(data, &result)
+	return result, err
 }
