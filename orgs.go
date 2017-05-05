@@ -1,3 +1,4 @@
+// TODO: add handling of 4XX http status codes - return detailed error message from json answer.
 package gapi
 
 import (
