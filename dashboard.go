@@ -23,6 +23,13 @@ type DashboardSaveResponse struct {
 	Message string `json:"message"`
 }
 
+type DashboardImportResponse struct {
+	Message string `json:"message"`
+	Title   string `json:"title"`
+	ImportedUri string `json:"importedUri"`
+	Slug    string `json:"slug"`
+}
+
 type Dashboard struct {
 	Meta  DashboardMeta          `json:"meta"`
 	Model map[string]interface{} `json:"dashboard"`
@@ -89,6 +96,51 @@ func (c *Client) SaveDashboard(model map[string]interface{}, overwrite bool) (*D
 	case 200:
 		return result, nil
 	case 400, 412:
+		log.Error(resp.Status)
+		return result, errors.New(result.Message)
+	default:
+		log.Error(resp.Status)
+		return result, errors.New(resp.Status)
+	}
+
+	return result, err
+}
+
+func (c *Client) ImportDashboard(model map[string]interface{}, overwrite bool, inputs []interface{}) (*DashboardImportResponse, error) {
+	wrapper := map[string]interface{}{
+		"dashboard": model,
+		"overwrite": overwrite,
+		"inputs": inputs,
+	}
+	data, err := json.Marshal(wrapper)
+    //fmt.Printf("%s\n",data)
+	if err != nil {
+		return nil, err
+	}
+	req, err := c.newRequest("POST", "/api/dashboards/import", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &DashboardImportResponse{}
+	if err = json.Unmarshal(data, &result); err != nil {
+		return result, err
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		return result, nil
+	case 500:
 		log.Error(resp.Status)
 		return result, errors.New(result.Message)
 	default:
