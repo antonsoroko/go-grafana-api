@@ -37,12 +37,12 @@ func (c *Client) NewOrg(name string) (OrgResponse, error) {
 		"name": name,
 	}
 	result := OrgResponse{}
-	postData, err := json.Marshal(settings)
-	req, err := c.newRequest("POST", "/api/orgs/", bytes.NewBuffer(postData))
+	data, err := json.Marshal(settings)
+	req, err := c.newRequest("POST", "/api/orgs/", bytes.NewBuffer(data))
 	if err != nil {
 		return result, err
 	}
-	data, err := c.DoRead(req)
+	data, err = c.DoRead(req)
 	if err != nil {
 		return result, err
 	}
@@ -55,9 +55,24 @@ func (c *Client) UpdateOrg(Id int64, name string) (OrgResponse, error) {
 		"name": name,
 	}
 	result := OrgResponse{}
-	postData, err := json.Marshal(settings)
+	data, err := json.Marshal(settings)
 	path := fmt.Sprintf("/api/orgs/%d", Id)
-	req, err := c.newRequest("PUT", path, bytes.NewBuffer(postData))
+	req, err := c.newRequest("PUT", path, bytes.NewBuffer(data))
+	if err != nil {
+		return result, err
+	}
+	data, err = c.DoRead(req)
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
+func (c *Client) GetOrgByName(name string) (Org, error) {
+	result := Org{}
+	path := fmt.Sprintf("/api/orgs/name/%s", name)
+	req, err := c.newRequest("GET", path, nil)
 	if err != nil {
 		return result, err
 	}
@@ -69,9 +84,9 @@ func (c *Client) UpdateOrg(Id int64, name string) (OrgResponse, error) {
 	return result, err
 }
 
-func (c *Client) GetOrgByName(name string) (Org, error) {
+func (c *Client) GetOrgById(Id int64) (Org, error) {
 	result := Org{}
-	path := fmt.Sprintf("/api/orgs/name/%s", name)
+	path := fmt.Sprintf("/api/orgs/%d", Id)
 	req, err := c.newRequest("GET", path, nil)
 	if err != nil {
 		return result, err
