@@ -2,9 +2,11 @@ package gapi
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type User struct {
@@ -53,27 +55,22 @@ func (c *Client) SwitchUserContext(Id int64) (SwitchUserContextResponse, error) 
 	if err != nil {
 		return message, err
 	}
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return message, err
+	}
+	err = json.Unmarshal(data, &message)
+	if err != nil {
+		return message, err
+	}
 	switch resp.StatusCode {
 	case 200:
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return message, err
-		}
-		err = json.Unmarshal(data, &message)
-		if err != nil {
-			return message, err
-		}
+		return message, err
 	case 401:
-		origErr := errors.New(resp.Status)
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return message, origErr
-		}
-		err = json.Unmarshal(data, &message)
-		if err != nil {
-			return message, origErr
-		}
+		log.Error(resp.Status)
+		return message, errors.Wrap(errors.New(message.Message), resp.Status)
 	default:
+		log.Error(resp.Status)
 		return message, errors.New(resp.Status)
 	}
 
