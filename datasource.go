@@ -25,6 +25,14 @@ type DataSource struct {
 	BasicAuth         bool   `json:"basicAuth"`
 	BasicAuthUser     string `json:"basicAuthUser,omitempty"`
 	BasicAuthPassword string `json:"basicAuthPassword,omitempty"`
+
+	JSONData interface{} `json:"jsonData,omitempty"`
+}
+
+type UpdateDataSourceResponse struct {
+	Id      int64
+	Name    string
+	Message string
 }
 
 func (c *Client) NewDataSource(s *DataSource) (int64, error) {
@@ -57,26 +65,25 @@ func (c *Client) NewDataSource(s *DataSource) (int64, error) {
 	return result.Id, err
 }
 
-func (c *Client) UpdateDataSource(s *DataSource) error {
+func (c *Client) UpdateDataSource(s *DataSource) (UpdateDataSourceResponse, error) {
+	result := UpdateDataSourceResponse{}
 	path := fmt.Sprintf("/api/datasources/%d", s.Id)
 	data, err := json.Marshal(s)
 	if err != nil {
-		return err
+		return result, err
 	}
 	req, err := c.newRequest("PUT", path, bytes.NewBuffer(data))
 	if err != nil {
-		return err
+		return result, err
 	}
 
-	resp, err := c.Do(req)
+	data, err = c.DoRead(req)
 	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
+		return result, err
 	}
 
-	return nil
+	err = json.Unmarshal(data, &result)
+	return result, err
 }
 
 func (c *Client) DataSource(id int64) (*DataSource, error) {
@@ -100,6 +107,23 @@ func (c *Client) DataSource(id int64) (*DataSource, error) {
 	}
 
 	result := &DataSource{}
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
+func (c *Client) GetDataSourceByName(name string) (*DataSource, error) {
+	result := &DataSource{}
+	path := fmt.Sprintf("/api/datasources/name/%s", name)
+	req, err := c.newRequest("GET", path, nil)
+	if err != nil {
+		return result, err
+	}
+
+	data, err := c.DoRead(req)
+	if err != nil {
+		return result, err
+	}
+
 	err = json.Unmarshal(data, &result)
 	return result, err
 }
