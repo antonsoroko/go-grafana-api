@@ -24,10 +24,10 @@ type DashboardSaveResponse struct {
 }
 
 type DashboardImportResponse struct {
-	Message string `json:"message"`
-	Title   string `json:"title"`
+	Message     string `json:"message"`
+	Title       string `json:"title"`
 	ImportedUri string `json:"importedUri"`
-	Slug    string `json:"slug"`
+	Slug        string `json:"slug"`
 }
 
 type Dashboard struct {
@@ -110,10 +110,9 @@ func (c *Client) ImportDashboard(model map[string]interface{}, overwrite bool, i
 	wrapper := map[string]interface{}{
 		"dashboard": model,
 		"overwrite": overwrite,
-		"inputs": inputs,
+		"inputs":    inputs,
 	}
 	data, err := json.Marshal(wrapper)
-    //fmt.Printf("%s\n",data)
 	if err != nil {
 		return nil, err
 	}
