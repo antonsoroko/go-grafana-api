@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -37,7 +38,7 @@ func New(auth, baseURL string) (*Client, error) {
 	return &Client{
 		key,
 		*u,
-		&http.Client{},
+		&http.Client{Timeout: 30 * time.Second},
 	}, nil
 }
 
