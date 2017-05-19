@@ -69,6 +69,16 @@ func (c *Client) newRequest(method, uri string, body io.Reader) (*http.Request, 
 func (c *Client) DoRead(req *http.Request) ([]byte, error) {
 	resp, err := c.Do(req)
 	if err != nil {
+		// strip login:pass
+		if urlErr, ok := err.(*url.Error); ok {
+			errUrl, err := url.Parse(urlErr.URL)
+			if err != nil {
+				urlErr.URL = "grafana"
+			} else {
+				errUrl.User = nil
+				urlErr.URL = errUrl.String()
+			}
+		}
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
