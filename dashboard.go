@@ -94,7 +94,6 @@ func (c *Client) SaveDashboard(model map[string]interface{}, overwrite bool) (*D
 
 	switch resp.StatusCode {
 	case 200:
-		return result, nil
 	case 400, 412:
 		log.Error(resp.Status)
 		return result, errors.New(result.Message)
@@ -138,7 +137,6 @@ func (c *Client) ImportDashboard(model map[string]interface{}, overwrite bool, i
 
 	switch resp.StatusCode {
 	case 200:
-		return result, nil
 	case 500:
 		log.Error(resp.Status)
 		return result, errors.New(result.Message)

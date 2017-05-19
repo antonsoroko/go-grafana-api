@@ -65,7 +65,6 @@ func (c *Client) SwitchUserContext(Id int64) (SwitchUserContextResponse, error) 
 	}
 	switch resp.StatusCode {
 	case 200:
-		return message, err
 	case 401:
 		log.Error(resp.Status)
 		return message, errors.Wrap(errors.New(message.Message), resp.Status)
