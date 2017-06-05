@@ -8,13 +8,15 @@ import (
 )
 
 type Org struct {
-	Id   int64
-	Name string
+	Id          int64
+	Name        string
+	External_id string `json:"external_id"`
 }
 
 type OrgResponse struct {
-	Id      int64  `json:"orgId"`
-	Message string `json:"message"`
+	Id          int64  `json:"orgId"`
+	Message     string `json:"message"`
+	External_id string `json:"external_id"`
 }
 
 func (c *Client) Orgs() ([]Org, error) {
@@ -32,9 +34,10 @@ func (c *Client) Orgs() ([]Org, error) {
 	return orgs, err
 }
 
-func (c *Client) NewOrg(name string) (OrgResponse, error) {
+func (c *Client) NewOrg(name string, external_id string) (OrgResponse, error) {
 	settings := map[string]string{
-		"name": name,
+		"name":        name,
+		"external_id": external_id,
 	}
 	result := OrgResponse{}
 	data, err := json.Marshal(settings)
@@ -50,9 +53,10 @@ func (c *Client) NewOrg(name string) (OrgResponse, error) {
 	return result, err
 }
 
-func (c *Client) UpdateOrg(Id int64, name string) (OrgResponse, error) {
+func (c *Client) UpdateOrg(Id int64, name string, external_id string) (OrgResponse, error) {
 	settings := map[string]string{
-		"name": name,
+		"name":        name,
+		"external_id": external_id,
 	}
 	result := OrgResponse{}
 	data, err := json.Marshal(settings)
