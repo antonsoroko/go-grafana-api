@@ -103,6 +103,21 @@ func (c *Client) GetOrgById(Id int64) (Org, error) {
 	return result, err
 }
 
+func (c *Client) GetOrgByExternalId(ExternalId string) (Org, error) {
+	result := Org{}
+	path := fmt.Sprintf("/api/orgs/external_id/%s", ExternalId)
+	req, err := c.newRequest("GET", path, nil)
+	if err != nil {
+		return result, err
+	}
+	data, err := c.DoRead(req)
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal(data, &result)
+	return result, err
+}
+
 func (c *Client) DeleteOrg(id int64) (OrgResponse, error) {
 	result := OrgResponse{}
 	req, err := c.newRequest("DELETE", fmt.Sprintf("/api/orgs/%d", id), nil)
